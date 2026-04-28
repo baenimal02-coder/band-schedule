@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>차세대 밴드 일정공유</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .slot-btn.active-lunch { background-color: #10b981 !important; color: white; }
+        .slot-btn.active-dinner { background-color: #3b82f6 !important; color: white; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 p-4 font-sans">
+    <div class="max-w-xl mx-auto space-y-6">
+        <header class="text-center py-6">
+            <h1 class="text-3xl font-black text-emerald-400 tracking-tight">🎸 차세대 NEXT GEN</h1>
+            <p class="text-gray-400 text-sm mt-1">연습 일정 합의 (점심/저녁)</p>
+        </header>
+
+        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+            <label class="block text-xs font-bold text-gray-500 mb-2 uppercase">Member</label>
+            <select id="memberSelect" class="w-full bg-gray-700 border-none rounded-lg p-3 text-white focus:ring-2 focus:ring-emerald-500">
+                <option value="배상호(기타/보컬)">배상호 (기타/보컬)</option>
+                <option value="김준헌(기타)">김준헌 (기타)</option>
+                <option value="정동욱(베이스)">정동욱 (베이스)</option>
+                <option value="김건효(드럼)">김건효 (드럼)</option>
+            </select>
+        </div>
+
+        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+            <div class="grid grid-cols-7 gap-1 text-center text-xs font-bold text-gray-500 mb-3">
+                <div class="text-red-400">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-400">토</div>
+            </div>
+            <div id="calendarGrid" class="grid grid-cols-7 gap-2">
+                </div>
+        </div>
+
+        <div class="space-y-3">
+            <div class="flex gap-4 text-xs justify-center text-gray-400">
+                <div class="flex items-center gap-1"><span class="w-3 h-3 bg-emerald-500 rounded-full"></span> 점심 가능</div>
+                <div class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-500 rounded-full"></span> 저녁 가능</div>
+            </div>
+            <button onclick="copyToClipboard()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95">
+                내 일정 요약 복사하기
+            </button>
+            <p class="text-[10px] text-gray-500 text-center leading-relaxed">
+                * 날짜의 위쪽은 점심, 아래쪽은 저녁입니다. <br>
+                * 체크 후 버튼을 눌러 카톡방에 붙여넣어 주세요.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('calendarGrid');
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        
+        // 이번 달의 마지막 날짜와 시작 요일 계산
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        const firstDayIndex = new Date(year, month, 1).getDay();
+
+        // 빈 칸 생성
+        for (let x = 0; x < firstDayIndex; x++) {
+            grid.appendChild(document.createElement('div'));
+        }
+
+        // 날짜 타일 생성
+        for (let i = 1; i <= lastDay; i++) {
+            const dayBox = document.createElement('div');
+            dayBox.className = "flex flex-col gap-1";
+
+            // 점심 슬롯
+            const lunchBtn = document.createElement('button');
+            lunchBtn.className = "slot-btn h-8 bg-gray-700 rounded-t-md text-[10px] font-bold border-b border-gray-800 transition-colors";
+            lunchBtn.innerText = `${i} 점`;
+            lunchBtn.onclick = () => lunchBtn.classList.toggle('active-lunch');
+
+            // 저녁 슬롯
+            const dinnerBtn = document.createElement('button');
+            dinnerBtn.className = "slot-btn h-8 bg-gray-700 rounded-b-md text-[10px] font-bold transition-colors";
+            dinnerBtn.innerText = `${i} 저`;
+            dinnerBtn.onclick = () => dinnerBtn.classList.toggle('active-dinner');
+
+            dayBox.appendChild(lunchBtn);
+            dayBox.appendChild(dinnerBtn);
+            grid.appendChild(dayBox);
+        }
+
+        function copyToClipboard() {
+            const member = document.getElementById('memberSelect').value;
+            const lunchSlots = Array.from(document.querySelectorAll('.active-lunch')).map(b => b.innerText.split(' ')[0] + '일(점심)');
+            const dinnerSlots = Array.from(document.querySelectorAll('.active-dinner')).map(b => b.innerText.split(' ')[0] + '일(저녁)');
+            
+            const allSlots = [...lunchSlots, ...dinnerSlots].sort((a, b) => parseInt(a) - parseInt(b));
+            
+            if (allSlots.length === 0) {
+                alert('가능한 일정을 선택해주세요!');
+                return;
+            }
+
+            const resultText = `[차세대 연습 일정 - ${member}]\n${allSlots.join('\n')}\n\n위 시간 가능합니다!`;
+            
+            navigator.clipboard.writeText(resultText).then(() => {
+                alert('복사 완료! 카톡방에 붙여넣어 주세요.');
+            });
+        }
+    </script>
+</body>
+</html>
