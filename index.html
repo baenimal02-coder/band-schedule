@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>JDD 밴드 일정 공유</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white p-5">
+    <div class="max-w-md mx-auto bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-700">
+        <h1 class="text-2xl font-bold text-emerald-400 mb-4 text-center">🎸 JDD 연습 일정 체크</h1>
+        <div id="calendar" class="grid grid-cols-7 gap-2 text-center">
+            </div>
+        <div class="mt-6 space-y-2">
+            <button onclick="copyStatus()" class="w-full bg-emerald-600 py-3 rounded-lg font-bold">내 일정 복사하기</button>
+            <p class="text-xs text-slate-400 text-center">* 아직 서버 연결 전이라, 선택 후 복사해서 카톡에 붙여넣어주세요!</p>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('calendar');
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        days.forEach(d => {
+            const div = document.createElement('div');
+            div.className = "text-slate-500 text-xs font-bold pb-2";
+            div.innerText = d;
+            grid.appendChild(div);
+        });
+
+        for (let i = 1; i <= 31; i++) {
+            const btn = document.createElement('button');
+            btn.className = "aspect-square bg-slate-700 rounded-md hover:bg-slate-600 transition text-sm day-btn";
+            btn.innerText = i;
+            btn.onclick = () => btn.classList.toggle('bg-emerald-500');
+            grid.appendChild(btn);
+        }
+
+        function copyStatus() {
+            const selected = Array.from(document.querySelectorAll('.bg-emerald-500')).map(b => b.innerText);
+            const text = `[JDD 합주 가능일]\n${selected.join(', ')}일 가능합니다!`;
+            navigator.clipboard.writeText(text).then(() => alert('클립보드에 복사되었습니다! 카톡에 붙여넣으세요.'));
+        }
+    </script>
+</body>
+</html>
