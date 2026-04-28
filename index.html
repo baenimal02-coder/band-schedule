@@ -3,180 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>차세대 밴드 일정공유</title>
+    <title>차세대 밴드 실시간 일정공유</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .slot-btn.active-lunch { background-color: #10b981 !important; color: white; }
-        .slot-btn.active-dinner { background-color: #3b82f6 !important; color: white; }
+        .slot-btn { transition: all 0.2s; position: relative; }
+        .selected-by-others { opacity: 0.6; }
+        .selected-by-me { box-shadow: inset 0 0 0 2px #10b981; }
+        .color-0 { background-color: #ef4444 !important; color: white; } 
+        .color-1 { background-color: #3b82f6 !important; color: white; } 
+        .color-2 { background-color: #f59e0b !important; color: white; } 
+        .color-3 { background-color: #8b5cf6 !important; color: white; } 
+        .bg-lunch { background-color: #374151; }
+        .bg-dinner { background-color: #1f2937; }
     </style>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
+        // ★★★ 이 부분을 방금 Firebase에서 복사한 본인의 코드로 완전히 덮어씌우세요 ★★★
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjqzM3ScDSoINSMiCukjFG6z7MBjinI1M",
+            authDomain: "nextgenband.firebaseapp.com",
+            databaseURL: "https://nextgenband-default-rtdb.firebaseio.com",
+            projectId: "nextgenband",
+            storageBucket: "nextgenband.firebasestorage.app",
+            messagingSenderId: "251453757830",
+            appId: "1:251453757830:web:201c7945ef0eba901db407",
+            measurementId: "G-WV1SK3R50G"
+        };
+        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const members = ["배상호(기타/보컬)", "김준헌(기타)", "정동욱(베이스)", "김건효(드럼)"];
+        
+        window.db = db;
+        window.ref = ref;
+        window.set = set;
+        window.remove = remove;
+        window.members = members;
+        window.currentData = {}; 
+    </script>
 </head>
 <body class="bg-gray-900 text-gray-100 p-4 font-sans text-sm">
     <div class="max-w-xl mx-auto space-y-4">
-        <header class="text-center py-4">
+        <header class="text-center py-4 border-b border-gray-700">
             <h1 class="text-3xl font-black text-emerald-400 tracking-tight italic">🎸 NEXT GEN</h1>
-            <p class="text-gray-400 text-xs mt-1 uppercase tracking-widest">Practice Scheduler</p>
+            <p class="text-gray-400 text-xs mt-1 uppercase tracking-widest text-center flex items-center justify-center gap-2">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                Real-time Sync Active
+            </p>
         </header>
 
         <div class="grid grid-cols-2 gap-3">
             <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
-                <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Member</label>
-                <select id="memberSelect" class="w-full bg-transparent border-none p-1 text-white focus:ring-0">
-                    <option value="배상호(기타/보컬)">배상호 (기타/보컬)</option>
-                    <option value="김준헌(기타)">김준헌 (기타)</option>
-                    <option value="정동욱(베이스)">정동욱 (베이스)</option>
-                    <option value="김건효(드럼)">김건효 (드럼)</option>
+                <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">나의 파트</label>
+                <select id="memberSelect" onchange="window.renderCalendar()" class="w-full bg-transparent border-none p-1 text-white focus:ring-0">
+                    <option value="0">배상호 (기타/보컬)</option>
+                    <option value="1">김준헌 (기타)</option>
+                    <option value="2">정동욱 (베이스)</option>
+                    <option value="3">김건효 (드럼)</option>
                 </select>
             </div>
-            <div class="bg-gray-800 p-3 rounded-xl border border-gray-700 flex gap-2">
-                <div class="flex-1">
-                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Year/Month</label>
-                    <div class="flex gap-1">
-                        <select id="yearSelect" onchange="renderCalendar()" class="bg-transparent border-none p-1 text-white focus:ring-0 text-xs"></select>
-                        <select id="monthSelect" onchange="renderCalendar()" class="bg-transparent border-none p-1 text-white focus:ring-0 text-xs"></select>
-                    </div>
+            <div class="bg-gray-800 p-3 rounded-xl border border-gray-700">
+                <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Year/Month</label>
+                <div class="flex gap-1">
+                    <select id="yearSelect" onchange="window.renderCalendar()" class="bg-transparent border-none p-1 text-white focus:ring-0 text-xs"></select>
+                    <select id="monthSelect" onchange="window.renderCalendar()" class="bg-transparent border-none p-1 text-white focus:ring-0 text-xs"></select>
                 </div>
             </div>
+        </div>
+
+         <div class="bg-gray-800 p-3 rounded-xl border border-gray-700 flex justify-between text-xs font-bold">
+            <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500"></span>배상호</div>
+            <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span>김준헌</div>
+            <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-yellow-500"></span>정동욱</div>
+            <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-purple-500"></span>김건효</div>
         </div>
 
         <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
             <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-500 mb-3 uppercase">
                 <div class="text-red-400">Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div class="text-blue-400">Sat</div>
             </div>
-            <div id="calendarGrid" class="grid grid-cols-7 gap-2">
-                </div>
+            <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
         </div>
-
-        <div class="space-y-3">
-            <div class="flex gap-4 text-[10px] justify-center text-gray-400 font-bold uppercase">
-                <div class="flex items-center gap-1"><span class="w-2 h-2 bg-emerald-500 rounded-full"></span> Lunch</div>
-                <div class="flex items-center gap-1"><span class="w-2 h-2 bg-blue-500 rounded-full"></span> Dinner</div>
-            </div>
-            <button onclick="copyToClipboard()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95 text-base">
-                일정 복사하기
-            </button>
-            <p class="text-[10px] text-gray-500 text-center leading-relaxed">
-                월을 이동해도 체크한 내역은 유지됩니다.<br>
-                모두 선택 후 복사 버튼을 눌러주세요.
-            </p>
-        </div>
+        
+        <p class="text-[10px] text-gray-500 text-center leading-relaxed">
+            * 클릭하면 즉시 저장되어 모두에게 공유됩니다.<br>
+            * 여러 명이 같은 날짜를 선택하면 색상이 나뉘어 표시됩니다.
+        </p>
     </div>
 
-    <script>
+    <script type="module">
+        import { onValue, ref } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-database.js";
+
         const yearSelect = document.getElementById('yearSelect');
         const monthSelect = document.getElementById('monthSelect');
         const grid = document.getElementById('calendarGrid');
-
-        // ★ 핵심 추가: 월을 이동해도 데이터가 날아가지 않게 담아두는 전역 변수
-        const savedSlots = new Set(); 
-
         const now = new Date();
-        let currentYear = now.getFullYear();
-        let currentMonth = now.getMonth();
 
-        for (let y = currentYear; y <= currentYear + 1; y++) {
-            const opt = document.createElement('option');
-            opt.value = y; opt.innerText = y + '년';
-            yearSelect.appendChild(opt);
+        for (let y = now.getFullYear(); y <= now.getFullYear() + 1; y++) {
+            yearSelect.innerHTML += `<option value="${y}">${y}년</option>`;
         }
         for (let m = 0; m < 12; m++) {
-            const opt = document.createElement('option');
-            opt.value = m; opt.innerText = (m + 1) + '월';
-            if (m === currentMonth) opt.selected = true;
-            monthSelect.appendChild(opt);
+            const selected = m === now.getMonth() ? 'selected' : '';
+            monthSelect.innerHTML += `<option value="${m}" ${selected}>${m + 1}월</option>`;
         }
 
-        function renderCalendar() {
+        setTimeout(() => {
+            const schedulesRef = ref(window.db, 'schedules');
+            onValue(schedulesRef, (snapshot) => {
+                const data = snapshot.val();
+                window.currentData = data || {};
+                window.renderCalendar(); 
+            });
+        }, 500); 
+
+        window.toggleSlot = function(year, month, day, timeType) {
+            const myIndex = document.getElementById('memberSelect').value;
+            const dateKey = `${year}-${month}-${day}-${timeType}`;
+            const dbRef = window.ref(window.db, `schedules/${dateKey}/${myIndex}`);
+            
+            const hasMyData = window.currentData[dateKey] && window.currentData[dateKey][myIndex];
+            
+            if (hasMyData) {
+                window.remove(dbRef); 
+            } else {
+                window.set(dbRef, true); 
+            }
+        };
+
+        window.renderCalendar = function() {
             grid.innerHTML = '';
             const year = parseInt(yearSelect.value);
             const month = parseInt(monthSelect.value);
-
-            const firstDayIndex = new Date(year, month, 1).getDay();
+            const myIndex = document.getElementById('memberSelect').value;
+            
+            const firstDay = new Date(year, month, 1).getDay();
             const lastDay = new Date(year, month + 1, 0).getDate();
 
-            for (let x = 0; x < firstDayIndex; x++) {
-                grid.appendChild(document.createElement('div'));
-            }
+            for (let x = 0; x < firstDay; x++) grid.appendChild(document.createElement('div'));
 
             for (let i = 1; i <= lastDay; i++) {
                 const dayBox = document.createElement('div');
-                dayBox.className = "flex flex-col gap-1";
+                dayBox.className = "flex flex-col gap-0.5";
 
-                // 날짜별 고유 키 생성 (예: 2026-5-15-점심)
-                const lunchKey = `${year}-${month + 1}-${i}-점심`;
-                const dinnerKey = `${year}-${month + 1}-${i}-저녁`;
+                const lKey = `${year}-${month + 1}-${i}-점심`;
+                const dKey = `${year}-${month + 1}-${i}-저녁`;
 
-                // 점심 버튼
-                const lunchBtn = document.createElement('button');
-                lunchBtn.className = "slot-btn h-7 bg-gray-700 rounded-t-md text-[9px] font-bold border-b border-gray-800 transition-colors";
-                lunchBtn.innerText = i + ' 점';
-                if (savedSlots.has(lunchKey)) lunchBtn.classList.add('active-lunch'); // 기존 데이터 확인
+                dayBox.appendChild(createButton(i, '점', lKey, myIndex, 'bg-lunch', 'rounded-t-md'));
+                dayBox.appendChild(createButton(i, '저', dKey, myIndex, 'bg-dinner', 'rounded-b-md'));
                 
-                lunchBtn.onclick = () => {
-                    lunchBtn.classList.toggle('active-lunch');
-                    if (lunchBtn.classList.contains('active-lunch')) savedSlots.add(lunchKey);
-                    else savedSlots.delete(lunchKey);
-                };
-
-                // 저녁 버튼
-                const dinnerBtn = document.createElement('button');
-                dinnerBtn.className = "slot-btn h-7 bg-gray-700 rounded-b-md text-[9px] font-bold transition-colors";
-                dinnerBtn.innerText = i + ' 저';
-                if (savedSlots.has(dinnerKey)) dinnerBtn.classList.add('active-dinner'); // 기존 데이터 확인
-
-                dinnerBtn.onclick = () => {
-                    dinnerBtn.classList.toggle('active-dinner');
-                    if (dinnerBtn.classList.contains('active-dinner')) savedSlots.add(dinnerKey);
-                    else savedSlots.delete(dinnerKey);
-                };
-
-                dayBox.appendChild(lunchBtn);
-                dayBox.appendChild(dinnerBtn);
                 grid.appendChild(dayBox);
             }
         }
 
-        function copyToClipboard() {
-            const member = document.getElementById('memberSelect').value;
+        function createButton(day, label, dateKey, myIndex, defaultClass, radiusClass) {
+            const btn = document.createElement('button');
+            btn.className = `slot-btn h-8 flex items-center justify-center text-[10px] font-bold ${defaultClass} ${radiusClass} overflow-hidden relative`;
+            btn.onclick = () => window.toggleSlot(yearSelect.value, parseInt(monthSelect.value) + 1, day, label === '점' ? '점심' : '저녁');
+
+            const slotData = window.currentData[dateKey];
             
-            if (savedSlots.size === 0) {
-                alert('가능한 일정을 선택해주세요!');
-                return;
-            }
-
-            // 날짜순으로 정렬
-            const sortedSlots = Array.from(savedSlots).sort((a, b) => {
-                const [y1, m1, d1, t1] = a.split('-');
-                const [y2, m2, d2, t2] = b.split('-');
-                if (parseInt(y1) !== parseInt(y2)) return parseInt(y1) - parseInt(y2);
-                if (parseInt(m1) !== parseInt(m2)) return parseInt(m1) - parseInt(m2);
-                if (parseInt(d1) !== parseInt(d2)) return parseInt(d1) - parseInt(d2);
-                return t1 === '점심' ? -1 : 1;
-            });
-
-            // 텍스트 조합 (월별로 묶어서 예쁘게 출력)
-            let resultText = `[차세대 연습 일정 - ${member}]\n`;
-            let currentMonthGroup = '';
-
-            sortedSlots.forEach(slot => {
-                const [y, m, d, t] = slot.split('-');
-                const monthStr = `${y}년 ${m}월`;
+            if (slotData) {
+                const selectedMembers = Object.keys(slotData);
+                const count = selectedMembers.length;
                 
-                if (currentMonthGroup !== monthStr) {
-                    resultText += `\n📅 ${monthStr}\n`;
-                    currentMonthGroup = monthStr;
+                if (count > 0) {
+                    btn.innerHTML = ''; 
+                    selectedMembers.forEach(memberIdx => {
+                        const bar = document.createElement('div');
+                        bar.className = `h-full flex-1 color-${memberIdx}`;
+                        btn.appendChild(bar);
+                    });
+                    
+                    const textSpan = document.createElement('span');
+                    textSpan.className = "absolute z-10 text-white drop-shadow-md";
+                    textSpan.innerText = `${day}${label}`;
+                    btn.appendChild(textSpan);
+
+                    if (slotData[myIndex]) {
+                        btn.classList.add('selected-by-me');
+                    }
+                } else {
+                    btn.innerText = `${day} ${label}`;
                 }
-                resultText += `- ${d}일(${t})\n`;
-            });
-
-            resultText += `\n위 시간 합주 가능합니다!`;
-            
-            navigator.clipboard.writeText(resultText).then(() => {
-                alert('복사 완료! 카톡방에 붙여넣어 주세요.');
-            });
+            } else {
+                btn.innerText = `${day} ${label}`;
+            }
+            return btn;
         }
-
-        // 첫 실행
-        renderCalendar();
     </script>
 </body>
 </html>
