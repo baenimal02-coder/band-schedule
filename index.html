@@ -8,9 +8,9 @@
     <style>
         .slot-btn { transition: all 0.2s; position: relative; }
         /* 멤버별 색상 */
-        .color-0 { background-color: #ef4444 !important; } /* 배상호 */
+        .color-0 { background-color: #ef4444 !important; } /* 김태진 */
         .color-1 { background-color: #3b82f6 !important; } /* 김준헌 */
-        .color-2 { background-color: #f59e0b !important; } /* 정동욱 */
+        .color-2 { background-color: #f59e0b !important; } /* 서유리 */
         .color-3 { background-color: #8b5cf6 !important; } /* 김건효 */
         
         .bg-lunch { background-color: #374151; }
@@ -48,7 +48,7 @@
         window.ref = ref;
         window.set = set;
         window.remove = remove;
-        window.members = ["배상호", "김준헌", "정동욱", "김건효"];
+        window.members = ["김태진", "김준헌", "서유리", "김건효"];
         window.currentData = {}; 
     </script>
 </head>
@@ -66,9 +66,9 @@
             <div class="bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-xl">
                 <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase">Operator</label>
                 <select id="memberSelect" onchange="window.renderCalendar()" class="w-full bg-transparent border-none p-1 text-white focus:ring-0 font-bold">
-                    <option value="0">배상호 (기타/보컬)</option>
+                    <option value="0">김태진 (기타/보컬)</option>
                     <option value="1">김준헌 (기타)</option>
-                    <option value="2">정동욱 (베이스)</option>
+                    <option value="2">서유리 (베이스/서브보컬)</option>
                     <option value="3">김건효 (드럼)</option>
                 </select>
             </div>
